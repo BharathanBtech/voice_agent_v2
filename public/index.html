@@ -1,0 +1,489 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Voice Agent - Speech-to-Text Test</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+            font-weight: 300;
+        }
+
+        .header p {
+            font-size: 1.1em;
+            opacity: 0.9;
+        }
+
+        .content {
+            padding: 40px;
+        }
+
+        .section {
+            margin-bottom: 40px;
+            padding: 25px;
+            border: 2px solid #f0f0f0;
+            border-radius: 15px;
+            background: #fafafa;
+        }
+
+        .section h2 {
+            color: #333;
+            margin-bottom: 20px;
+            font-size: 1.5em;
+            border-bottom: 2px solid #4facfe;
+            padding-bottom: 10px;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #555;
+        }
+
+        .form-group input,
+        .form-group select {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            font-size: 16px;
+            transition: border-color 0.3s;
+        }
+
+        .form-group input:focus,
+        .form-group select:focus {
+            outline: none;
+            border-color: #4facfe;
+        }
+
+        .file-input {
+            border: 2px dashed #4facfe;
+            padding: 30px;
+            text-align: center;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .file-input:hover {
+            background: #f0f8ff;
+            border-color: #00f2fe;
+        }
+
+        .file-input.dragover {
+            background: #e6f3ff;
+            border-color: #00f2fe;
+        }
+
+        .btn {
+            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            border-radius: 8px;
+            font-size: 16px;
+            cursor: pointer;
+            transition: transform 0.2s;
+            width: 100%;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+        }
+
+        .btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .result {
+            margin-top: 20px;
+            padding: 20px;
+            border-radius: 8px;
+            background: #f8f9fa;
+            border-left: 4px solid #4facfe;
+        }
+
+        .result.success {
+            background: #d4edda;
+            border-left-color: #28a745;
+        }
+
+        .result.error {
+            background: #f8d7da;
+            border-left-color: #dc3545;
+        }
+
+        .status {
+            display: inline-block;
+            padding: 5px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+
+        .status.working {
+            background: #d4edda;
+            color: #155724;
+        }
+
+        .status.not-working {
+            background: #f8d7da;
+            color: #721c24;
+        }
+
+        .loading {
+            display: none;
+            text-align: center;
+            padding: 20px;
+        }
+
+        .spinner {
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #4facfe;
+            border-radius: 50%;
+            width: 30px;
+            height: 30px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 10px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .info-box {
+            background: #e3f2fd;
+            border: 1px solid #2196f3;
+            border-radius: 8px;
+            padding: 15px;
+            margin-bottom: 20px;
+        }
+
+        .info-box h3 {
+            color: #1976d2;
+            margin-bottom: 10px;
+        }
+
+        .info-box ul {
+            margin-left: 20px;
+            color: #424242;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🎤 Voice Agent</h1>
+            <p>Speech-to-Text Component Test Interface</p>
+        </div>
+
+        <div class="content">
+            <div class="info-box">
+                <h3>📋 Setup Instructions</h3>
+                <ul>
+                    <li>Make sure the server is running on port 3000</li>
+                    <li>Set up Google Cloud Speech API credentials</li>
+                    <li>Upload an audio file to test speech recognition</li>
+                </ul>
+            </div>
+
+            <!-- Health Check Section -->
+            <div class="section">
+                <h2>🏥 Health Check</h2>
+                <button class="btn" onclick="checkHealth()">Check Server Health</button>
+                <div id="healthResult"></div>
+            </div>
+
+            <!-- Component Test Section -->
+            <div class="section">
+                <h2>🧪 Component Test</h2>
+                <button class="btn" onclick="testComponent()">Test Speech-to-Text Component</button>
+                <div id="componentResult"></div>
+            </div>
+
+            <!-- Authentication Info Section -->
+            <div class="section">
+                <h2>🔐 Authentication Info</h2>
+                <button class="btn" onclick="getAuthInfo()">Get Authentication Information</button>
+                <div id="authResult"></div>
+            </div>
+
+            <!-- Supported Formats Section -->
+            <div class="section">
+                <h2>📊 Supported Formats</h2>
+                <button class="btn" onclick="getSupportedFormats()">Get Supported Formats</button>
+                <div id="formatsResult"></div>
+            </div>
+
+            <!-- Speech-to-Text Section -->
+            <div class="section">
+                <h2>🎵 Speech-to-Text</h2>
+                <form id="speechForm">
+                    <div class="form-group">
+                        <label for="audioFile">Audio File:</label>
+                        <div class="file-input" onclick="document.getElementById('audioFile').click()">
+                            <input type="file" id="audioFile" accept="audio/*" style="display: none;" onchange="handleFileSelect(event)">
+                            <p>Click to select audio file or drag and drop</p>
+                            <p style="font-size: 12px; margin-top: 10px; opacity: 0.7;">
+                                Supported: WAV, MP3, FLAC, M4A, etc.
+                            </p>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="encoding">Audio Encoding:</label>
+                        <select id="encoding">
+                            <option value="LINEAR16">LINEAR16</option>
+                            <option value="FLAC">FLAC</option>
+                            <option value="MULAW">MULAW</option>
+                            <option value="AMR">AMR</option>
+                            <option value="AMR_WB">AMR_WB</option>
+                            <option value="OGG_OPUS">OGG_OPUS</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="sampleRate">Sample Rate (Hz):</label>
+                        <select id="sampleRate">
+                            <option value="8000">8000</option>
+                            <option value="12000">12000</option>
+                            <option value="16000" selected>16000</option>
+                            <option value="24000">24000</option>
+                            <option value="48000">48000</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="language">Language:</label>
+                        <select id="language">
+                            <option value="en-US" selected>English (US)</option>
+                            <option value="en-GB">English (UK)</option>
+                            <option value="es-ES">Spanish</option>
+                            <option value="fr-FR">French</option>
+                            <option value="de-DE">German</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label>
+                            <input type="checkbox" id="enablePunctuation" checked>
+                            Enable Automatic Punctuation
+                        </label>
+                    </div>
+
+                    <button type="submit" class="btn">Convert Speech to Text</button>
+                </form>
+
+                <div class="loading" id="loading">
+                    <div class="spinner"></div>
+                    <p>Processing audio... Please wait.</p>
+                </div>
+
+                <div id="speechResult"></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const API_BASE = 'http://localhost:3000';
+
+        // Health Check
+        async function checkHealth() {
+            try {
+                const response = await fetch(`${API_BASE}/health`);
+                const data = await response.json();
+                showResult('healthResult', data, true);
+            } catch (error) {
+                showResult('healthResult', { error: error.message }, false);
+            }
+        }
+
+        // Component Test
+        async function testComponent() {
+            try {
+                const response = await fetch(`${API_BASE}/api/test`);
+                const data = await response.json();
+                showResult('componentResult', data, true);
+            } catch (error) {
+                showResult('componentResult', { error: error.message }, false);
+            }
+        }
+
+        // Get Supported Formats
+        async function getSupportedFormats() {
+            try {
+                const response = await fetch(`${API_BASE}/api/supported-formats`);
+                const data = await response.json();
+                showResult('formatsResult', data, true);
+            } catch (error) {
+                showResult('formatsResult', { error: error.message }, false);
+            }
+        }
+
+        // Get Authentication Info
+        async function getAuthInfo() {
+            try {
+                const response = await fetch(`${API_BASE}/api/auth-info`);
+                const data = await response.json();
+                showResult('authResult', data, true);
+            } catch (error) {
+                showResult('authResult', { error: error.message }, false);
+            }
+        }
+
+        // Handle File Selection
+        function handleFileSelect(event) {
+            const file = event.target.files[0];
+            if (file) {
+                const fileInput = document.querySelector('.file-input');
+                fileInput.innerHTML = `<p>Selected: ${file.name}</p><p style="font-size: 12px; opacity: 0.7;">Size: ${(file.size / 1024 / 1024).toFixed(2)} MB</p>`;
+            }
+        }
+
+        // Speech-to-Text Form Submission
+        document.getElementById('speechForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const fileInput = document.getElementById('audioFile');
+            if (!fileInput.files[0]) {
+                alert('Please select an audio file');
+                return;
+            }
+
+            const formData = new FormData();
+            formData.append('audio', fileInput.files[0]);
+            formData.append('encoding', document.getElementById('encoding').value);
+            formData.append('sampleRateHertz', document.getElementById('sampleRate').value);
+            formData.append('languageCode', document.getElementById('language').value);
+            formData.append('enableAutomaticPunctuation', document.getElementById('enablePunctuation').checked);
+
+            showLoading(true);
+
+            try {
+                const response = await fetch(`${API_BASE}/api/speech-to-text`, {
+                    method: 'POST',
+                    body: formData
+                });
+
+                const data = await response.json();
+                showResult('speechResult', data, data.success);
+            } catch (error) {
+                showResult('speechResult', { error: error.message }, false);
+            } finally {
+                showLoading(false);
+            }
+        });
+
+        // Utility Functions
+        function showResult(elementId, data, isSuccess) {
+            const element = document.getElementById(elementId);
+            const className = isSuccess ? 'result success' : 'result error';
+            
+            let html = '';
+            if (data.success) {
+                html = `<div class="${className}">
+                    <h4>✅ Success</h4>
+                    <p><strong>Message:</strong> ${data.message || 'Operation completed successfully'}</p>`;
+                
+                if (data.data) {
+                    if (data.data.transcript) {
+                        html += `<p><strong>Transcript:</strong> ${data.data.transcript}</p>`;
+                        html += `<p><strong>Confidence:</strong> ${(data.data.confidence * 100).toFixed(2)}%</p>`;
+                    }
+                    if (data.data.status) {
+                        const statusClass = data.data.status === 'working' ? 'working' : 'not-working';
+                        html += `<p><span class="status ${statusClass}">${data.data.status}</span></p>`;
+                    }
+                    if (data.data.encodings) {
+                        html += `<p><strong>Supported Encodings:</strong> ${data.data.encodings.join(', ')}</p>`;
+                    }
+                    if (data.data.sampleRates) {
+                        html += `<p><strong>Supported Sample Rates:</strong> ${data.data.sampleRates.join(', ')} Hz</p>`;
+                    }
+                    if (data.data.languages) {
+                        html += `<p><strong>Supported Languages:</strong> ${data.data.languages.join(', ')}</p>`;
+                    }
+                }
+            } else {
+                html = `<div class="${className}">
+                    <h4>❌ Error</h4>
+                    <p><strong>Error:</strong> ${data.error || 'Unknown error occurred'}</p>`;
+            }
+            
+            html += '</div>';
+            element.innerHTML = html;
+        }
+
+        function showLoading(show) {
+            const loading = document.getElementById('loading');
+            loading.style.display = show ? 'block' : 'none';
+        }
+
+        // Drag and Drop Support
+        const fileInput = document.querySelector('.file-input');
+        
+        fileInput.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            fileInput.classList.add('dragover');
+        });
+
+        fileInput.addEventListener('dragleave', () => {
+            fileInput.classList.remove('dragover');
+        });
+
+        fileInput.addEventListener('drop', (e) => {
+            e.preventDefault();
+            fileInput.classList.remove('dragover');
+            
+            const files = e.dataTransfer.files;
+            if (files.length > 0) {
+                document.getElementById('audioFile').files = files;
+                handleFileSelect({ target: { files: files } });
+            }
+        });
+
+        // Auto-check health on page load
+        window.addEventListener('load', checkHealth);
+    </script>
+</body>
+</html>
