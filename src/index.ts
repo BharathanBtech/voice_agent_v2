@@ -26,7 +26,7 @@ app.use(express.json({ limit: '50mb' }));
 app.use(express.urlencoded({ extended: true, limit: '50mb' }));
 
 // Serve static files
-app.use(express.static(path.join(__dirname, '../public")));
+app.use(express.static(path.join(__dirname, '../public')));
 
 // Configure multer for file uploads
 const upload = multer({
@@ -34,7 +34,7 @@ const upload = multer({
   limits: {
     fileSize: 10 * 1024 * 1024, // 10MB limit
   },
-  fileFilter: (req, file, cb) => {
+  fileFilter: (req: Express.Request, file: Express.Multer.File, cb: multer.FileFilterCallback) => {
     // Accept audio files
     if (file.mimetype.startsWith('audio/')) {
       cb(null, true);
@@ -135,7 +135,7 @@ app.get('/api/supported-languages', async (req, res) => {
 });
 
 // Speech-to-text endpoint for file upload
-app.post('/api/speech-to-text', upload.single('audio'), async (req, res) => {
+app.post('/api/speech-to-text', upload.single('audio'), async (req: express.Request & { file?: Express.Multer.File }, res) => {
   try {
     if (!req.file) {
       return res.status(400).json({

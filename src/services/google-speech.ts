@@ -10,7 +10,7 @@ export class GoogleSpeechService {
     this.authService = new GoogleAuthService(authConfig);
     this.client = new SpeechClient({
       projectId: authConfig.projectId,
-      authClient: this.authService.getAuthenticatedClient()
+      authClient: undefined // Will be set when needed
     });
   }
 
@@ -19,6 +19,14 @@ export class GoogleSpeechService {
    */
   async recognizeSpeech(request: SpeechRecognitionRequest): Promise<SpeechRecognitionResponse> {
     try {
+      // Get authenticated client and create new SpeechClient instance
+      const authClient = await this.authService.getAuthenticatedClient();
+      const projectId = await this.client.getProjectId();
+      const speechClient = new SpeechClient({
+        projectId: projectId,
+        authClient: authClient as any
+      });
+
       const audio = {
         content: request.audio.toString('base64'),
       };
@@ -38,7 +46,7 @@ export class GoogleSpeechService {
         config: config,
       };
 
-      const [response] = await this.client.recognize(speechRequest);
+      const [response] = await speechClient.recognize(speechRequest);
       
       if (!response.results || response.results.length === 0) {
         throw new Error('No transcription results returned');
@@ -75,6 +83,14 @@ export class GoogleSpeechService {
    */
   async recognizeSpeechStream(audioChunk: Buffer, encoding: string, sampleRateHertz: number = 16000): Promise<string> {
     try {
+      // Get authenticated client and create new SpeechClient instance
+      const authClient = await this.authService.getAuthenticatedClient();
+      const projectId = await this.client.getProjectId();
+      const speechClient = new SpeechClient({
+        projectId: projectId,
+        authClient: authClient as any
+      });
+
       const audio = {
         content: audioChunk.toString('base64'),
       };
@@ -93,7 +109,7 @@ export class GoogleSpeechService {
         config: config,
       };
 
-      const [response] = await this.client.recognize(speechRequest);
+      const [response] = await speechClient.recognize(speechRequest);
       
       if (!response.results || response.results.length === 0) {
         return '';
@@ -110,13 +126,19 @@ export class GoogleSpeechService {
    * Get supported languages
    */
   async getSupportedLanguages(): Promise<string[]> {
-    try {
-      const [response] = await this.client.getSupportedLanguages();
-      return response.languages?.map(lang => lang.languageCode || '') || [];
-    } catch (error) {
-      console.error('Error getting supported languages:', error);
-      return ['en-US', 'en-GB', 'es-ES', 'fr-FR', 'de-DE', 'it-IT', 'pt-BR', 'ja-JP', 'ko-KR', 'zh-CN'];
-    }
+    // Google Cloud Speech API supports many languages, but we'll return a curated list
+    // of commonly used languages. The full list can be found in the Google Cloud documentation.
+    return [
+      'en-US', 'en-GB', 'en-AU', 'en-CA', 'en-IN',
+      'es-ES', 'es-MX', 'es-AR', 'es-CO', 'es-PE',
+      'fr-FR', 'fr-CA', 'fr-BE', 'fr-CH',
+      'de-DE', 'de-AT', 'de-CH',
+      'it-IT', 'it-CH',
+      'pt-BR', 'pt-PT',
+      'ja-JP', 'ko-KR', 'zh-CN', 'zh-TW', 'zh-HK',
+      'ru-RU', 'nl-NL', 'pl-PL', 'tr-TR', 'ar-SA',
+      'hi-IN', 'th-TH', 'vi-VN', 'id-ID', 'ms-MY'
+    ];
   }
 
   /**
