@@ -2,9 +2,13 @@ import express from 'express';
 import multer from 'multer';
 import cors from 'cors';
 import path from 'path';
+import dotenv from 'dotenv';
 import { SpeechToTextComponent } from './components/speech-to-text';
 import { GoogleAuthConfig } from './services/google-auth';
 import { ApiResponse } from './types';
+
+// Load environment variables from .env file
+dotenv.config();
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -12,10 +16,14 @@ const PORT = process.env.PORT || 3000;
 // Initialize Google Auth configuration
 const googleAuthConfig: GoogleAuthConfig = {
   projectId: process.env.GOOGLE_PROJECT_ID || 'gemini-ai-yuniq',
-  serviceAccountKeyPath: process.env.GOOGLE_APPLICATION_CREDENTIALS,
-  clientId: process.env.GOOGLE_CLIENT_ID,
-  clientSecret: process.env.GOOGLE_CLIENT_SECRET
+  serviceAccountKeyPath: process.env.GOOGLE_APPLICATION_CREDENTIALS
 };
+
+// Debug: Log the configuration
+console.log('🔧 Google Auth Configuration:');
+console.log('  Project ID:', googleAuthConfig.projectId);
+console.log('  Service Account Key Path:', googleAuthConfig.serviceAccountKeyPath);
+console.log('  Authentication Method: Service Account');
 
 // Initialize components
 const speechToTextComponent = new SpeechToTextComponent(googleAuthConfig);

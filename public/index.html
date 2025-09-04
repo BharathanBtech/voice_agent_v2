@@ -332,7 +332,9 @@
             try {
                 const response = await fetch(`${API_BASE}/health`);
                 const data = await response.json();
-                showResult('healthResult', data, true);
+                // Health endpoint returns status, not success property
+                const isSuccess = data.status === 'OK';
+                showResult('healthResult', data, isSuccess);
             } catch (error) {
                 showResult('healthResult', { error: error.message }, false);
             }
@@ -420,10 +422,23 @@
             const className = isSuccess ? 'result success' : 'result error';
             
             let html = '';
-            if (data.success) {
+            if (isSuccess) {
                 html = `<div class="${className}">
-                    <h4>✅ Success</h4>
-                    <p><strong>Message:</strong> ${data.message || 'Operation completed successfully'}</p>`;
+                    <h4>✅ Success</h4>`;
+                
+                // Handle health check response format
+                if (data.status && data.service) {
+                    html += `<p><strong>Status:</strong> ${data.status}</p>`;
+                    html += `<p><strong>Service:</strong> ${data.service}</p>`;
+                    html += `<p><strong>Version:</strong> ${data.version}</p>`;
+                    html += `<p><strong>Timestamp:</strong> ${data.timestamp}</p>`;
+                } else if (data.message) {
+                    html += `<p><strong>Message:</strong> ${data.message}</p>`;
+                } else if (data.success) {
+                    html += `<p><strong>Message:</strong> Operation completed successfully</p>`;
+                } else {
+                    html += `<p><strong>Message:</strong> Operation completed successfully</p>`;
+                }
                 
                 if (data.data) {
                     if (data.data.transcript) {

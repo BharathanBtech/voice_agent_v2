@@ -1,10 +1,9 @@
 import { GoogleAuth, GoogleAuthOptions } from 'google-auth-library';
+import * as path from 'path';
 
 export interface GoogleAuthConfig {
   projectId: string;
   serviceAccountKeyPath?: string;
-  clientId?: string;
-  clientSecret?: string;
 }
 
 export class GoogleAuthService {
@@ -22,9 +21,12 @@ export class GoogleAuthService {
       ]
     };
 
-    // If service account key is provided, use it
+    // Set the GOOGLE_APPLICATION_CREDENTIALS environment variable if service account key is provided
     if (config.serviceAccountKeyPath) {
-      authOptions.keyFile = config.serviceAccountKeyPath;
+      // Resolve the path relative to the project root
+      const keyPath = path.resolve(process.cwd(), config.serviceAccountKeyPath);
+      process.env.GOOGLE_APPLICATION_CREDENTIALS = keyPath;
+      console.log(`Set GOOGLE_APPLICATION_CREDENTIALS to: ${keyPath}`);
     }
 
     this.auth = new GoogleAuth(authOptions);
@@ -83,8 +85,7 @@ export class GoogleAuthService {
     return {
       projectId: this.config.projectId,
       hasServiceAccount: !!this.config.serviceAccountKeyPath,
-      hasOAuth: !!(this.config.clientId && this.config.clientSecret),
-      authMethod: this.config.serviceAccountKeyPath ? 'Service Account' : 'OAuth'
+      authMethod: this.config.serviceAccountKeyPath ? 'Service Account' : 'Default Credentials'
     };
   }
 }
