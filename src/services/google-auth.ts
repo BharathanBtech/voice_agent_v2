@@ -70,8 +70,12 @@ export class GoogleAuthService {
    */
   async testAuth(): Promise<boolean> {
     try {
-      await this.getAccessToken();
-      return true;
+      // Create a client and validate it can obtain a project ID.
+      // This avoids forcing an immediate token refresh which can fail
+      // in restricted environments while still validating credentials.
+      const client = await this.getAuthenticatedClient();
+      const projectId = await this.auth.getProjectId();
+      return !!client && !!projectId;
     } catch (error) {
       console.error('Authentication test failed:', error);
       return false;

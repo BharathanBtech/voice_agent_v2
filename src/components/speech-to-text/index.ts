@@ -81,6 +81,7 @@ export class SpeechToTextComponent {
     return [
       'LINEAR16',
       'FLAC',
+      'MP3',
       'MULAW',
       'AMR',
       'AMR_WB',
